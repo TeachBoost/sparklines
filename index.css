@@ -1,0 +1,16 @@
+body {
+    padding: 20px
+}
+div {
+    width: 40%;
+    float: left;
+    padding: 10px;
+    background: #eee;
+}
+.sparkline svg {
+    background: white;
+    stroke: rgb( 70, 200, 255 );
+}
+.sparkline-filled svg {
+    fill: rgba( 70, 200, 255, 0.25 );
+}

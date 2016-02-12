@@ -1,86 +1,67 @@
-/*
-Copyright (c) 2014 Reece Selwood
+var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
+    var aspectRatio = arguments.length > 1
+            ? arguments[ 1 ]
+            : 2.5,
+        namespaceURI = 'http://www.w3.org/2000/svg',
+        els = document.querySelectorAll( selector ),
+        el;
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
+    for ( var i = 0; i < els.length; i++ ) {
+        el =  els[ i ];
+            // Sensible defaults for the svg viewport; it scales
+            // to the actual width of the svg element on render
+        var maxWidth = Math.max( el.clientWidth, 1000 ),
+            maxHeight = maxWidth / aspectRatio,
+            padding = maxWidth * 0.02,
+            strokeWidth = maxWidth * .006,
+            values = el
+                .dataset
+                .values
+                .split( ',' )
+                .map( function ( value ) { return parseFloat( value ); } ),
+            max = Math.max.apply( null, values ),
+            min = Math.min.apply( null, values ),
+            svg = document.createElementNS( namespaceURI, 'svg' ),
+            path = document.createElementNS( namespaceURI, 'path' ),
+            filled = el.classList.contains( 'sparkline-filled' ),
+            offset, pathString, fill;
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-window.onload = function() { 
-  function makeChart(values, height, parent, filled) {
-    var width = 80;
-    height = height - 2;
-    var max = Math.max.apply(null, values);
-    var min = Math.min.apply(null, values);
+        var calculateY = function ( y ) {
+            return relativeY = maxHeight * ( ( y - min ) / ( max - min ) );
+        };
 
-    function c(x) {
-      var s = height / (max - min);
-      return height - (s * (x - min));
+        svg.setAttribute( 'viewBox', '0 0 ' + maxWidth + ' ' +  maxHeight );
+        svg.setAttribute( 'style', 'padding:' + strokeWidth / 2 + '%' );
+
+        maxHeight -= padding * 2;
+        maxWidth -= padding * 2;
+        offset = Math.floor( maxWidth / ( values.length - 1 ) );
+
+        pathString = 'M 0 ' + calculateY( values[ 0 ] ).toFixed( 2 );
+
+        for ( var j = 1; j < values.length; j++ ) {
+            pathString += ' L ' + ( j * offset ) + ' ' + ( calculateY( values[ j ] ).toFixed( 2 ) );
+        }
+
+        path.setAttribute( 'd', pathString );
+        path.setAttribute( 'fill', 'none' );
+        path.setAttribute( 'stroke-width', strokeWidth + '%' );
+        path.setAttribute( 'transform', 'scale(1,-1) translate(0,-' + maxHeight + ')' );
+        svg.appendChild( path );
+
+        if ( filled ) {
+            pathString += 'V 0 H 0 Z'
+            fill = document.createElementNS( namespaceURI, 'path' );
+            fill.setAttribute( 'd', pathString );
+            fill.setAttribute( 'stroke', 'none' );
+            fill.setAttribute( 'transform', 'scale(1,-1) translate(0,-' + maxHeight + ')' );
+
+            svg.appendChild( fill );
+        }
+
+        el.appendChild( svg );
     }
+};
 
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height);
-    svg.setAttribute('transform', 'translate(0,1)');
-
-    var offset = Math.round(width/(values.length - 1));
-    var path = 'M0 ' + c(values[0]).toFixed(2);
-    for (var i = 0; i < values.length; i++) {
-      path += ' L ' + (i * offset) + ' ' + (c(values[i]).toFixed(2));
-    }
-
-    var pathElm = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathElm.setAttribute('d', path);
-    pathElm.setAttribute('fill', 'none');
-    svg.appendChild(pathElm);
-
-    if (filled) {
-      path += ' V ' + height;
-      path += ' L 0 ' + height + ' Z';
-      var e = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      e.setAttribute('d', path);
-      e.setAttribute('stroke', 'none');
-      svg.appendChild(e);
-    }
-
-    parent.appendChild(svg);
-  }
-
-  function getDefaultFontSize(pa) {
-    pa= pa || document.body;
-    var who= document.createElement('div');
-
-    who.style.cssText='display:inline-block; padding:0; line-height:1; position:absolute; visibility:hidden; font-size:1em';
-
-    who.appendChild(document.createTextNode('M'));
-    pa.appendChild(who);
-    var fs= [who.offsetWidth, who.offsetHeight];
-    pa.removeChild(who);
-    return fs;
- }
-
-  var elms = document.querySelectorAll('.sparkline');
-  for (var i = 0; i < elms.length; i++) {
-    var e = elms[i];
-    var values = elms[i].dataset.values.split(',').map(function(d) { return parseFloat(d); });
-    var height = getDefaultFontSize(e)[1];
-    if (e.classList.contains('sparkline-filled')) {
-      makeChart(values, height, e, true);
-    } else {
-      makeChart(values, height, e, false);
-    }
-  }
-}
+//# sourceMappingURL=datatables.js.map
