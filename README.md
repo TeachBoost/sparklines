@@ -1,25 +1,38 @@
 # Library to generate SVG sparklines
 
-[Demo](http://alligatr.co.uk/sparklines/)
-
 ## Usage
 
+### HTML
 ``` html
+<div class="sparkline" data-values="1,4,3,6,5"></div>
+<div class="sparkline sparkline-filled" data-values="1,4,3,6,5"></div>
 <script src="sparklines.js"></script>
-<span class="sparkline" data-values="1,4,3,6,5"></span>
-<span class="sparkline sparkline-filled" data-values="1,4,3,6,5"></span>
 ```
 
-Anything with the sparkline class will get an SVG sparkline made from the values in data-values appended. Add the class sparkline‑filled for a filled sparkline like above.
+### Javascript
+Pass a selector to the function.
+``` javascript
+sparklines( '.sparkline' );
+```
+Optionally pass an aspectRatio.
+``` javascript
+var el = document.getElementById( 'foo' ),
+    aspectRatio = foo.clientWidth / foo.clientHeight;
 
-It's not a bad idea to add style too:
+sparklines( '.sparkline', aspectRatio );
 
+// OR
+
+sparklines( '.sparkline', 2.5 )
+```
+
+### CSS
+Set line and fill colors.
 ``` css
 .sparkline svg {
-  stroke: mediumseagreen;
-  stroke-width: 1.5px;
+    stroke: rgb( 70, 200, 255 );
 }
 .sparkline-filled svg {
-  fill: rgba(60,179,113,0.25);
+    fill: rgba( 70, 200, 255, 0.25 );
 }
 ```
