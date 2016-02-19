@@ -47,7 +47,11 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         path.setAttribute( 'd', pathString );
         path.setAttribute( 'fill', 'none' );
         path.setAttribute( 'stroke-width', strokeWidth + '%' );
+        path.setAttribute( 'stroke-linejoin', 'round' );
         path.setAttribute( 'transform', 'scale(1,-1) translate(0,-' + maxHeight + ')' );
+        if ( el.dataset.dashed ) {
+            path.setAttribute( 'stroke-dasharray', ( strokeWidth * 1.5 ) + '%, ' + ( strokeWidth * .75 ) + '%' );
+        }
         svg.appendChild( path );
 
         if ( filled ) {
