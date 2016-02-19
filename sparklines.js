@@ -26,7 +26,6 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         var buildPath = function () {
                 path = document.createElementNS( namespaceURI, 'path' );
 
-                console.log( 'values: ', values );
                 pathString = 'M 0 ' + calculateY( values[ 0 ] ).toFixed( 2 );
 
                 for ( var j = 1; j < values.length; j++ ) {
