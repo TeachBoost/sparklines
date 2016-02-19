@@ -36,11 +36,13 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
 
             },
             buildLine = function () {
+                var y1 = calculateY( values[ 0 ] ).toFixed( 2 ),
+                    y2 = calculateY( values[ 1 ] ).toFixed( 2 );
                 path = document.createElementNS( namespaceURI, 'line' );
                 path.setAttribute( 'x1', 0 );
-                path.setAttribute( 'y1', calculateY( values[ 0 ] ).toFixed( 2 ) );
+                path.setAttribute( 'y1', y1 );
                 path.setAttribute( 'x2', maxWidth );
-                path.setAttribute( 'y2', calculateY( values[ 1 ] ).toFixed( 2 ) );
+                path.setAttribute( 'y2', y2 );
                 if ( filled ) {
                     pathString = 'M 0 ' + y1 + ' L ' + maxWidth + ' ' + ( y2 );
                 }
