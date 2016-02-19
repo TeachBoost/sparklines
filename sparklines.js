@@ -19,18 +19,48 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
                 .values
                 .split( ',' )
                 .map( function ( value ) { return parseFloat( value ); } ),
-            max = Math.max.apply( null, values ),
-            min = Math.min.apply( null, values ),
             svg = document.createElementNS( namespaceURI, 'svg' ),
-            path = document.createElementNS( namespaceURI, 'path' ),
             filled = el.classList.contains( 'sparkline-filled' ),
-            offset, pathString, fill;
+            scale, max, min, path, offset, pathString, fill;
 
+        var buildPath = function () {
+                path = document.createElementNS( namespaceURI, 'path' );
 
-        var calculateY = function ( y ) {
-            return relativeY = maxHeight * ( ( y - min ) / ( max - min ) );
-        };
+                console.log( 'values: ', values );
+                pathString = 'M 0 ' + calculateY( values[ 0 ] ).toFixed( 2 );
 
+                for ( var j = 1; j < values.length; j++ ) {
+                    pathString += ' L ' + ( j * offset ) + ' ' + ( calculateY( values[ j ] ).toFixed( 2 ) );
+                }
+                path.setAttribute( 'd', pathString );
+
+            },
+            buildLine = function () {
+                path = document.createElementNS( namespaceURI, 'line' );
+                path.setAttribute( 'x1', 0 );
+                path.setAttribute( 'y1', calculateY( values[ 0 ] ).toFixed( 2 ) );
+                path.setAttribute( 'x2', maxWidth );
+                path.setAttribute( 'y2', calculateY( values[ 1 ] ).toFixed( 2 ) );
+                // pathString for if filled
+                pathString = 'M ' + maxWidth;
+
+            },
+            calculateY = function ( y ) {
+                return maxHeight * ( ( y - min ) / ( max - min ) );
+            };
+
+        if ( undefined !== el.dataset.scale ) {
+            scale = el.dataset.scale.split( ',' ).map( function ( value ) { return parseFloat( value ); } );
+            min = scale[ 0 ];
+            max = scale[ 1 ];
+
+        }
+        else {
+            max = Math.max.apply( null, values );
+            min = Math.min.apply( null, values );
+        }
+
+        // Build the SVG container
         svg.setAttribute( 'viewBox', '0 0 ' + maxWidth + ' ' +  maxHeight );
         svg.setAttribute( 'style', 'padding:' + strokeWidth / 2 + '%' );
 
@@ -38,13 +68,14 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         maxWidth -= padding * 2;
         offset = Math.floor( maxWidth / ( values.length - 1 ) );
 
-        pathString = 'M 0 ' + calculateY( values[ 0 ] ).toFixed( 2 );
-
-        for ( var j = 1; j < values.length; j++ ) {
-            pathString += ' L ' + ( j * offset ) + ' ' + ( calculateY( values[ j ] ).toFixed( 2 ) );
+        // Check if we are building a path or a line
+        if ( values.length < 3 ) {
+            buildLine();
+        }
+        else {
+            buildPath();
         }
 
-        path.setAttribute( 'd', pathString );
         path.setAttribute( 'fill', 'none' );
         path.setAttribute( 'stroke-width', strokeWidth + '%' );
         path.setAttribute( 'stroke-linejoin', 'round' );
@@ -52,6 +83,7 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         if ( el.dataset.dashed ) {
             path.setAttribute( 'stroke-dasharray', ( strokeWidth * 1.5 ) + '%, ' + ( strokeWidth * .75 ) + '%' );
         }
+
         svg.appendChild( path );
 
         if ( filled ) {
@@ -67,5 +99,3 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         el.appendChild( svg );
     }
 };
-
-//# sourceMappingURL=datatables.js.map
