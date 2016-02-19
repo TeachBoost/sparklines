@@ -41,9 +41,9 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
                 path.setAttribute( 'y1', calculateY( values[ 0 ] ).toFixed( 2 ) );
                 path.setAttribute( 'x2', maxWidth );
                 path.setAttribute( 'y2', calculateY( values[ 1 ] ).toFixed( 2 ) );
-                // pathString for if filled
-                pathString = 'M ' + maxWidth;
-
+                if ( filled ) {
+                    pathString = 'M 0 ' + y1 + ' L ' + maxWidth + ' ' + ( y2 );
+                }
             },
             calculateY = function ( y ) {
                 return maxHeight * ( ( y - min ) / ( max - min ) );
@@ -87,7 +87,7 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         svg.appendChild( path );
 
         if ( filled ) {
-            pathString += 'V 0 H 0 Z'
+            pathString += ' V 0 H 0 Z';
             fill = document.createElementNS( namespaceURI, 'path' );
             fill.setAttribute( 'd', pathString );
             fill.setAttribute( 'stroke', 'none' );
