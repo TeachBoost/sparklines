@@ -1,19 +1,12 @@
-var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
+var sparklines = function sparklines ( el /*, aspectRatio */ ) {
     var aspectRatio = arguments.length > 1
             ? arguments[ 1 ]
-            : 2.5,
-        namespaceURI = 'http://www.w3.org/2000/svg',
-        els = document.querySelectorAll( selector ),
-        el;
+            : false,
+        namespaceURI = 'http://www.w3.org/2000/svg';
 
-    for ( var i = 0; i < els.length; i++ ) {
-        el =  els[ i ];
-            // Sensible defaults for the svg viewport; it scales
-            // to the actual width of the svg element on render
-        var maxWidth = Math.max( el.clientWidth, 1000 ),
-            maxHeight = maxWidth / aspectRatio,
-            padding = maxWidth * 0.02,
-            strokeWidth = maxWidth * .006,
+        var maxWidth = el.clientWidth,
+            strokeWidth = 4,
+            padding = 1,
             values = el
                 .dataset
                 .values
@@ -21,18 +14,17 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
                 .map( function ( value ) { return parseFloat( value ); } ),
             svg = document.createElementNS( namespaceURI, 'svg' ),
             filled = el.classList.contains( 'sparkline-filled' ),
-            scale, max, min, path, offset, pathString, fill;
+            scale, max, min, path, offset, pathString, fill, maxHeight;
 
         var buildPath = function () {
                 path = document.createElementNS( namespaceURI, 'path' );
 
-                pathString = 'M 0 ' + calculateY( values[ 0 ] ).toFixed( 2 );
+                pathString = 'M ' + padding + ' ' + calculateY( values[ 0 ] ).toFixed( 2 );
 
                 for ( var j = 1; j < values.length; j++ ) {
-                    pathString += ' L ' + ( j * offset ) + ' ' + ( calculateY( values[ j ] ).toFixed( 2 ) );
+                    pathString += ' L ' + ( j * offset + padding ) + ' ' + ( calculateY( values[ j ] ).toFixed( 2 ) );
                 }
                 path.setAttribute( 'd', pathString );
-
             },
             buildLine = function () {
                 var y1 = calculateY( values[ 0 ] ).toFixed( 2 ),
@@ -47,9 +39,30 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
                 }
             },
             calculateY = function ( y ) {
-                return maxHeight * ( ( y - min ) / ( max - min ) );
+                return Math.round( ( maxHeight - ( 2 * padding ) ) * ( ( y - min ) / ( max - min ) ) ) + padding;
             };
 
+        // Figure out aspect ratio, if not passed in
+        if ( ! aspectRatio ) {
+            // Use the element height
+            if ( el.clientHeight > 0 ) {
+                aspectRatio = el.clientWidth / el.clientHeight;
+            }
+            // If the element has - height, check the parent
+            else if ( el.parentElement.clientHeight > 0 ) {
+                aspectRatio = el.clientWidth / el.parentElement.clientHeight;
+            }
+            // If we can't get a height, use a sensible default
+            else {
+                aspectRatio = 2.5;
+            }
+        }
+
+        maxHeight = Math.round( maxWidth / aspectRatio );
+        padding = maxHeight * 0.05;
+        // maxHeight = 1000;
+
+        // Get or calculate max and min Y values
         if ( undefined !== el.dataset.scale ) {
             scale = el.dataset.scale.split( ',' ).map( function ( value ) { return parseFloat( value ); } );
             min = scale[ 0 ];
@@ -63,11 +76,9 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
 
         // Build the SVG container
         svg.setAttribute( 'viewBox', '0 0 ' + maxWidth + ' ' +  maxHeight );
-        svg.setAttribute( 'style', 'padding:' + strokeWidth / 2 + '%' );
+        svg.setAttribute( 'preserveAspectRatio', 'none' );
 
-        maxHeight -= padding * 2;
-        maxWidth -= padding * 2;
-        offset = Math.floor( maxWidth / ( values.length - 1 ) );
+        offset = Math.floor( ( maxWidth -  ( 2 * padding ) ) / ( values.length - 1 ) );
 
         // Check if we are building a path or a line
         if ( values.length < 3 ) {
@@ -78,7 +89,6 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         }
 
         path.setAttribute( 'fill', 'none' );
-        path.setAttribute( 'stroke-width', strokeWidth + '%' );
         path.setAttribute( 'stroke-linejoin', 'round' );
         path.setAttribute( 'transform', 'scale(1,-1) translate(0,-' + maxHeight + ')' );
         if ( el.dataset.dashed ) {
@@ -98,5 +108,4 @@ var sparklines = function sparklines ( selector /*, aspectRatio */ ) {
         }
 
         el.appendChild( svg );
-    }
 };
