@@ -10,39 +10,45 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
         aspectRatio = arguments.length > 1
             ? arguments[ 1 ]
             : false,
+        gridSettings = el.dataset.grid,
+        plot, grid, path,
         // filled = el.classList.contains( 'sparkline-filled' ),
         // grid = el.classList.contains( 'sparkline-grid' ),
         // @TODO check for class inclusion to determine grid inclusion, allow for "x-only" and "y-only"
-        grid = true,
-        svg, path,
         scale, max, min, xStep, yStep, maxHeight, pathArray;
 
-        var buildGrid = function( ) {
-            // @TODO check if "x-only" or "y-only"
-            var grid = SVG( el ),
-                pattern = grid.pattern( xStep, yStep, function ( add ) {
-                    add.path( 'M ' + xStep + ' 0 L 0 0 L 0 ' + yStep )
-                        .fill( 'none' )
-                        .stroke( { width: 0.5  } )
-                }),
-                gridPath = grid.path( 'M ' + padding + ' ' + padding + ' H ' + ( maxWidth - 2 * padding + 1 ) + ' V ' + ( maxHeight - padding ) + ' H ' + padding + ' z' ).fill( pattern );
+        var buildGrid = function ( ) {
+            var xGridLine, yGridLine;
 
-            pattern.x( padding );
-            pattern.y( padding );
-
-            grid.addClass( 'grid' );
+            pathArray.forEach( function ( segment ) {
+                if ( gridSettings.indexOf( 'x' ) > - 1 ) {
+                    xGridLine = plot.line(
+                        segment[ 1 ],
+                        padding,
+                        segment[ 1 ],
+                        maxHeight - padding );
+                    xGridLine.addClass( 'grid' );
+                }
+                if ( gridSettings.indexOf( 'y' ) > - 1 ) {
+                    yGridLine = plot.line(
+                        padding,
+                        segment[ 2 ],
+                        maxWidth - ( padding * 2 ),
+                        segment[ 2 ] );
+                    yGridLine.addClass( 'grid' );
+                }
+            });
         };
 
         var buildPathArray = function( ) {
             var calculateY = function ( y ) {
                     return Math.round( ( maxHeight - ( 2 * padding ) ) * ( ( y - min ) / ( max - min ) ) ) + padding;
                 },
-                pathValues = values.map( function( value, index ) {
+                pathValues = values.map( function ( value, index ) {
                     var xValue = index * xStep + padding,
-                        yValue = calculateY( value ) ;
+                        yValue = calculateY( value );
 
                     return [ ( index == 0 ) ? 'M' : 'L', xValue, yValue ];
-
                 });
             // @TODO
             // if ( filled ) {
@@ -88,8 +94,8 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
         yStep = ( maxHeight - 2 * padding - 1 ) / ( max - 1 );
 
         // Build the SVG container
-        svg = SVG( el );
-        svg.viewbox( 0, 0, maxWidth, maxHeight )
+        plot = SVG( el );
+        plot.viewbox( 0, 0, maxWidth, maxHeight )
             .attr( 'preserveAspectRatio', 'none' )
             .addClass( 'plot' );
 
@@ -98,19 +104,19 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
             var y1 = calculateY( values[ 0 ] ).toFixed( 2 ),
                 y2 = calculateY( values[ 1 ] ).toFixed( 2 );
 
-            path = svg.line( 0, y1, maxWidth, y2 );
+            path = plot.line( 0, y1, maxWidth, y2 );
         }
         else if ( values.length > 2 ) {
-            pathArray = new SVG.PathArray( buildPathArray( ) );
-            path = svg.path( pathArray );
+            // Both the grid and plot need the path array
+            pathArray = buildPathArray( );
+            // Build the grid lines first so they render under the plot
+            if ( gridSettings ) {
+                buildGrid();
+            }
+            path = plot.path( pathArray );
         }
         else {
             console.log( 'Need to deal with a single point line?' );
-        }
-
-        // Build the reference grid
-        if ( grid ) {
-            buildGrid();
         }
 
         path.fill( 'none' )
