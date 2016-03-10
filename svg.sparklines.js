@@ -40,11 +40,12 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
             });
         };
 
+        var calculateY = function ( y ) {
+            return Math.round( ( maxHeight - ( 2 * padding ) ) * ( ( y - min ) / ( max - min ) ) ) + padding;
+        };
+
         var buildPathArray = function( ) {
-            var calculateY = function ( y ) {
-                    return Math.round( ( maxHeight - ( 2 * padding ) ) * ( ( y - min ) / ( max - min ) ) ) + padding;
-                },
-                pathValues = values.map( function ( value, index ) {
+            var pathValues = values.map( function ( value, index ) {
                     var xValue = index * xStep + padding,
                         yValue = calculateY( value );
 
@@ -104,23 +105,29 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
             var y1 = calculateY( values[ 0 ] ).toFixed( 2 ),
                 y2 = calculateY( values[ 1 ] ).toFixed( 2 );
 
-            path = plot.line( 0, y1, maxWidth, y2 );
+            pathArray = [ [ 'M', padding, y1 ], [ 'L', maxWidth - ( padding * 2 ), y2 ] ];
+
         }
         else if ( values.length > 2 ) {
             // Both the grid and plot need the path array
             pathArray = buildPathArray( );
-            // Build the grid lines first so they render under the plot
-            if ( gridSettings ) {
-                buildGrid();
-            }
-            path = plot.path( pathArray );
         }
         else {
-            console.log( 'Need to deal with a single point line?' );
+            var y1 = calculateY( values[ 0 ] ).toFixed( 2 );
+
+            pathArray = [ [ 'M', padding, y1 ], [ 'L', maxWidth - ( padding * 2 ), y1 ] ];
         }
+        // Build the grid lines first so they render under the plot
+        if ( gridSettings ) {
+            buildGrid();
+        }
+        path = plot.path( pathArray );
+
+
 
         path.fill( 'none' )
             .transform( { scaleX: 1, scaleY: -1 } )
+            .translate( 0, maxHeight )
             .attr( 'stroke-linejoin', 'round' );
 
         if ( el.dataset.dashed ) {
