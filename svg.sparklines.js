@@ -6,7 +6,9 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
             .dataset
             .values
             .split( ',' )
-            .map( function ( value ) { return parseFloat( value ); } ),
+            .map( function ( value ) {
+                return ( value ) ? parseFloat( value ) : 0;
+            }),
         aspectRatio = arguments.length > 1
             ? arguments[ 1 ]
             : false,
@@ -15,7 +17,7 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
         // filled = el.classList.contains( 'sparkline-filled' ),
         // grid = el.classList.contains( 'sparkline-grid' ),
         // @TODO check for class inclusion to determine grid inclusion, allow for "x-only" and "y-only"
-        scale, max, min, xStep, yStep, maxHeight, pathArray;
+        scale, max, min, xStep, yStep, maxHeight, pathArray, y1, y2;
 
         var buildGrid = function ( ) {
             var xGridLine, yGridLine;
@@ -41,16 +43,18 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
         };
 
         var calculateY = function ( y ) {
-            return Math.round( ( maxHeight - ( 2 * padding ) ) * ( ( y - min ) / ( max - min ) ) ) + padding;
+            var aVal = maxHeight - ( 2 * padding ),
+                bVal = ( y - min ) / ( max - min );
+            return Math.round( aVal * bVal ) + padding;
         };
 
-        var buildPathArray = function( ) {
+        var buildPathArray = function () {
             var pathValues = values.map( function ( value, index ) {
-                    var xValue = index * xStep + padding,
-                        yValue = calculateY( value );
+                var xValue = ( index * xStep ) + padding,
+                    yValue = calculateY( value );
 
-                    return [ ( index == 0 ) ? 'M' : 'L', xValue, yValue ];
-                });
+                return [ ( index == 0 ) ? 'M' : 'L', xValue, yValue ];
+            });
             // @TODO
             // if ( filled ) {
             //     pathString = 'M 0 ' + y1 + ' L ' + maxWidth + ' ' + ( y2 );
@@ -80,10 +84,12 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
 
         // Get or calculate max and min Y values
         if ( undefined !== el.dataset.scale ) {
-            scale = el.dataset.scale.split( ',' ).map( function ( value ) { return parseFloat( value ); } );
+            scale = el.dataset.scale.split( ',' ).map(
+                function ( value ) {
+                    return ( value ) ? parseFloat( value ) : 0;
+                });
             min = scale[ 0 ];
             max = scale[ 1 ];
-
         }
         else {
             max = Math.max.apply( null, values );
@@ -92,7 +98,7 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
 
         // Calculate the how far apart each X and Y point should be
         xStep = Math.floor( ( maxWidth -  ( 2 * padding ) ) / ( values.length - 1 ) );
-        yStep = ( maxHeight - 2 * padding - 1 ) / ( max - 1 );
+        yStep = ( maxHeight - ( 2 * padding ) - 1 ) / ( max - 1 );
 
         // Build the SVG container
         plot = SVG( el );
@@ -102,29 +108,24 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
 
         // Check if we are building a path or a line
         if ( values.length === 2 ) {
-            var y1 = calculateY( values[ 0 ] ).toFixed( 2 ),
-                y2 = calculateY( values[ 1 ] ).toFixed( 2 );
-
+            y1 = calculateY( values[ 0 ] ).toFixed( 2 );
+            y2 = calculateY( values[ 1 ] ).toFixed( 2 );
             pathArray = [ [ 'M', padding, y1 ], [ 'L', maxWidth - ( padding * 2 ), y2 ] ];
-
         }
         else if ( values.length > 2 ) {
             // Both the grid and plot need the path array
             pathArray = buildPathArray( );
         }
         else {
-            var y1 = calculateY( values[ 0 ] ).toFixed( 2 );
-
+            y1 = calculateY( values[ 0 ] ).toFixed( 2 );
             pathArray = [ [ 'M', padding, y1 ], [ 'L', maxWidth - ( padding * 2 ), y1 ] ];
         }
         // Build the grid lines first so they render under the plot
         if ( gridSettings ) {
             buildGrid();
         }
+
         path = plot.path( pathArray );
-
-
-
         path.fill( 'none' )
             .transform( { scaleX: 1, scaleY: -1 } )
             .translate( 0, maxHeight )
