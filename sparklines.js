@@ -22,7 +22,7 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
         for ( var j = 1; j < values.length; j++ ) {
             pathString += ' L ' + ( j * offset + padding ) + ' ' + ( calculateY( values[ j ] ).toFixed( 2 ) );
         }
-        
+
         path.setAttribute( 'd', pathString );
     };
 
