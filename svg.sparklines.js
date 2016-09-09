@@ -2,8 +2,13 @@
 var sparklines = function sparklines ( el /*, aspectRatio */ ) {
     var maxWidth = el.clientWidth;
     var padding = 0;
-    var dataset = el.dataset;
-    var values = ( dataset && dataset.values )
+    var dataset = {
+        grid: el.getAttribute( 'data-grid' ),
+        scale: el.getAttribute( 'data-scale' ),
+        values: el.getAttribute( 'data-values' ),
+        dashed: el.getAttribute( 'data-dashed' )
+    };
+    var values = ( dataset.values )
         ? dataset.values
             .split( ',' )
             .map( function ( value ) {
@@ -13,9 +18,7 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
     var aspectRatio = arguments.length > 1
         ? arguments[ 1 ]
         : false;
-    var gridSettings = ( dataset )
-        ? dataset.grid
-        : {};
+    var gridSettings = dataset.grid;
     // filled = el.classList.contains( 'sparkline-filled' ),
     // grid = el.classList.contains( 'sparkline-grid' ),
     // @TODO check for class inclusion to determine grid inclusion, allow for "x-only" and "y-only"
@@ -92,8 +95,8 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
     padding = maxHeight * 0.05;
 
     // Get or calculate max and min Y values
-    if ( undefined !== el.dataset.scale ) {
-        scale = el.dataset.scale.split( ',' ).map(
+    if ( undefined !== dataset.scale ) {
+        scale = dataset.scale.split( ',' ).map(
             function ( value ) {
                 return ( value ) ? parseFloat( value ) : 0;
             });
@@ -141,7 +144,7 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
         .translate( 0, maxHeight )
         .attr( 'stroke-linejoin', 'round' );
 
-    if ( el.dataset.dashed ) {
+    if ( dataset.dashed ) {
         path.attr( 'stroke-dasharray', ( strokeWidth * 1.5 ) + '%, ' + ( strokeWidth * .75 ) + '%' );
     }
 };
