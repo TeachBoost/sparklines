@@ -3,22 +3,23 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
     var maxWidth = el.clientWidth;
     var padding = 0;
     var dataset = el.dataset;
-    var values = ( dataset.values )
+    var values = ( dataset && dataset.values )
         ? dataset.values
             .split( ',' )
             .map( function ( value ) {
                 return ( value ) ? parseFloat( value ) : 0;
-            }),
+            })
         : [];
     var aspectRatio = arguments.length > 1
         ? arguments[ 1 ]
         : false;
-    var gridSettings = el.dataset.grid,
-    var plot, grid, path;
+    var gridSettings = ( dataset )
+        ? dataset.grid
+        : {};
     // filled = el.classList.contains( 'sparkline-filled' ),
     // grid = el.classList.contains( 'sparkline-grid' ),
     // @TODO check for class inclusion to determine grid inclusion, allow for "x-only" and "y-only"
-    var scale, max, min, xStep, yStep, maxHeight, pathArray, y1, y2;
+    var plot, grid, path, scale, max, min, xStep, yStep, maxHeight, pathArray, y1, y2;
 
     var buildGrid = function ( ) {
         var xGridLine;
@@ -45,15 +46,16 @@ var sparklines = function sparklines ( el /*, aspectRatio */ ) {
     };
 
     var calculateY = function ( y ) {
-        var aVal = maxHeight - ( 2 * padding ),
-            bVal = ( y - min ) / ( max - min );
+        var aVal = maxHeight - ( 2 * padding );
+        var bVal = ( y - min ) / ( max - min );
+
         return Math.round( aVal * bVal ) + padding;
     };
 
     var buildPathArray = function () {
         var pathValues = values.map( function ( value, index ) {
-            var xValue = ( index * xStep ) + padding,
-                yValue = calculateY( value );
+            var xValue = ( index * xStep ) + padding;
+            var yValue = calculateY( value );
 
             return [ ( index == 0 ) ? 'M' : 'L', xValue, yValue ];
         });
