@@ -1,0 +1,16 @@
+{
+  "name": "sparklines",
+  "preferGlobal": true,
+  "version": "0.0.1",
+  "author": "Talia Imbrescia",
+  "description": "Library to generate SVG sparklines",
+  "license": "MIT",
+  "contributors": "Talia Imbrescia",
+  "keywords": [],
+  "bugs": "https://github.com/TeachBoost/sparklines/issues",
+  "dependencies": {},
+  "repository": {
+     "type": "git",
+     "url": "https://github.com/TeachBoost/sparklines"
+  }
+}
